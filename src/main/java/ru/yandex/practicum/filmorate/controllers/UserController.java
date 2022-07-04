@@ -15,8 +15,8 @@ import java.util.Map;
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    Map<Integer, User> userList = new HashMap<>();
-    int userIdCounter = 1;
+    private final Map<Integer, User> userList = new HashMap<>();
+    private int userIdCounter = 1;
 
     @GetMapping
     public Collection<User> getUsers() {

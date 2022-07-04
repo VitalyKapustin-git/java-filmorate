@@ -11,15 +11,15 @@ import java.time.LocalDate;
 @Data
 @Builder
 public class Film {
-    int id;
+    private int id;
 
     @NotBlank(message = "Имя не может быть пустым")
-    String name;
+    private String name;
 
     @Length(message = "Ваше описание более 200 символов", max = 200)
-    String description;
-    LocalDate releaseDate;
+    private String description;
+    private LocalDate releaseDate;
 
     @Min(message = "Продолжительность фильма не может быть менее 1 минуты", value = 1)
-    double duration;
+    private double duration;
 }

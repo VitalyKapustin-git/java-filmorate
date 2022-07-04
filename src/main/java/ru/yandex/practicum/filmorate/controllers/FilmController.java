@@ -14,8 +14,8 @@ import java.util.*;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    Map<Integer, Film> filmList = new HashMap<>();
-    int filmIdCounter = 1;
+    private final Map<Integer, Film> filmList = new HashMap<>();
+    private int filmIdCounter = 1;
 
     @GetMapping
     public Collection<Film> getFilms() {
