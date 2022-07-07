@@ -5,12 +5,14 @@ import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -22,9 +24,12 @@ public class UserControllerTest {
     private User user;
     private String userToString;
     private Gson gson;
+    private UserController userController;
 
     @BeforeEach
     public void beforeEach() {
+        this.userController = new UserController();
+
         gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
                 .create();
@@ -37,6 +42,46 @@ public class UserControllerTest {
                 .build();
     }
 
+    // ТЕСТЫ РЕАЛИЗОВАНЫ ДОПОЛЬНИТЕЛЬНО ЧЕРЕЗ MockMvc ТАМ, ГДЕ ЭТО ВОЗМОЖНО
+    // (соответственно тесты покрывают не только исключения, но и 4хх ошибки)
+
+    // VALIDATOR TESTS
+   @Test
+   public void testValidatorEmptyEmail() {
+        user.setEmail("");
+
+        try {
+            userController.userBasicValidation(user);
+        } catch (ValidationException e) {
+           assertEquals("Произошла ошибка при обновлении пользователя (пустой email)", e.getMessage());
+       }
+   }
+
+    @Test
+    public void testValidatorIncorrectEmail() {
+        user.setEmail("sdfsdf..asdsdf.rew");
+        assertThrows(ValidationException.class, () -> userController.userBasicValidation(user));
+    }
+
+    @Test
+    public void testValidatorEmptyLogin() {
+        user.setLogin("");
+        assertThrows(ValidationException.class, () -> userController.userBasicValidation(user));
+    }
+
+    @Test
+    public void testValidatorIncorrectLogin() {
+        user.setEmail("AB  CD");
+        assertThrows(ValidationException.class, () -> userController.userBasicValidation(user));
+    }
+
+    @Test
+    public void testValidatorIncorrectBD() {
+        user.setBirthday(LocalDate.of(2132, 2, 12));
+        assertThrows(ValidationException.class, () -> userController.userBasicValidation(user));
+    }
+
+    // API TESTS
     @Test
     @DisplayName("Создание пользователя")
     public void mustCreateUser() throws Exception {

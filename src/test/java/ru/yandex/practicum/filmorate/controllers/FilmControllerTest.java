@@ -10,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
@@ -28,9 +26,12 @@ public class FilmControllerTest {
     private String film1JsonString;
     private Film film1;
     private Gson gson;
+    private FilmController filmController;
 
     @BeforeEach
     public void beforeEach() {
+        filmController = new FilmController();
+
         gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDate.class, new LocalDateAdapter().nullSafe()).create();
 
@@ -42,6 +43,38 @@ public class FilmControllerTest {
                 .build();
     }
 
+    // ТЕСТЫ РЕАЛИЗОВАНЫ ДОПОЛЬНИТЕЛЬНО ЧЕРЕЗ MockMvc ТАМ, ГДЕ ЭТО ВОЗМОЖНО
+    // (соответственно тесты покрывают не только исключения, но и 4хх ошибки)
+
+    // VALIDATOR TESTS
+
+    @Test
+    public void testValidatorEmptyName() {
+        film1.setName("");
+        assertThrows(ValidationException.class, () -> filmController.filmBasicValidation(film1));
+    }
+
+    @Test
+    public void testValidatorOversymbDescr() {
+        film1.setDescription("......................................................................" +
+                "......................................................................" +
+                "......................................................................" +
+                "......................................................................");
+        assertThrows(ValidationException.class, () -> filmController.filmBasicValidation(film1));
+    }
+    @Test
+    public void testValidatorPastTime() {
+        film1.setReleaseDate(LocalDate.of(1700, 2, 13));
+        assertThrows(ValidationException.class, () -> filmController.filmBasicValidation(film1));
+    }
+    @Test
+    public void testValidatorDuration() {
+        film1.setDuration(-14324);
+        assertThrows(ValidationException.class, () -> filmController.filmBasicValidation(film1));
+    }
+
+
+    // API TESTS
     @Test
     @DisplayName("Создание фильма")
     public void mustCreateFilmSuccessfully() throws Exception {

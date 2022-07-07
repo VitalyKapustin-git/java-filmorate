@@ -18,6 +18,31 @@ public class UserController {
     private final Map<Integer, User> userList = new HashMap<>();
     private int userIdCounter = 1;
 
+    public void userBasicValidation(User user) throws ValidationException {
+        if (user.getEmail().isBlank() || user.getEmail().isEmpty())
+        {
+            log.warn("Произошла ошибка при обновлении пользователя (пустой email): {}", user);
+            throw new ValidationException("Произошла ошибка при обновлении пользователя (пустой email)");
+        }
+        if (!user.getEmail().contains("@"))
+        {
+            log.warn("Произошла ошибка при обновлении пользователя (некорректный email): {}", user);
+            throw new ValidationException("Произошла ошибка при обновлении пользователя (некорректный email)");
+        }
+        if (user.getLogin().isBlank() || user.getLogin().isEmpty()) {
+            log.warn("Произошла ошибка при обновлении пользователя (пустой логин): {}", user);
+            throw new ValidationException("Произошла ошибка при обновлении пользователя (пустой логин)");
+        }
+        if (user.getLogin().contains(" ")) {
+            log.warn("Произошла ошибка при обновлении пользователя (логин содержит пробелы): {}", user);
+            throw new ValidationException("Произошла ошибка при обновлении пользователя (логин содержит пробелы)");
+        }
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.warn("Произошла ошибка при обновлении пользователя (день рождения в будущем): {}", user);
+            throw new ValidationException("Произошла ошибка при обновлении пользователя (день рождения в будущем)");
+        }
+    }
+
     @GetMapping
     public Collection<User> getUsers() {
         return userList.values();
@@ -25,19 +50,11 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) throws ValidationException {
-        if (
-                        user.getEmail().isBlank()      ||
-                        user.getEmail().isEmpty()      ||
-                        !user.getEmail().contains("@")   ||
-                        user.getLogin().isBlank()      ||
-                        user.getLogin().isEmpty()      ||
-                        user.getLogin().contains(" ")  ||
-                        user.getBirthday().isAfter(LocalDate.now()) ||
-                                user.getId() < 1
+        userBasicValidation(user);
 
-        ) {
-            log.warn("Произошла ошибка при обновлении пользователя: {}", user);
-            throw new ValidationException("Произошла ошибка при обновлении пользователя");
+        if (user.getId() < 1) {
+            log.warn("Произошла ошибка при обновлении пользователя (некорректный id пользователя): {}", user);
+            throw new ValidationException("Произошла ошибка при обновлении пользователя (некорректный id пользователя)");
         }
 
         if(user.getName().isBlank() || user.getName().isEmpty()) {
@@ -58,18 +75,7 @@ public class UserController {
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) throws ValidationException {
-        if (
-                user.getEmail().isBlank()      ||
-                        user.getEmail().isEmpty()      ||
-                        !user.getEmail().contains("@")   ||
-                        user.getLogin().isBlank()      ||
-                        user.getLogin().isEmpty()      ||
-                        user.getLogin().contains(" ")  ||
-                        user.getBirthday().isAfter(LocalDate.now())
-        ) {
-            log.warn("Произошла ошибка при создании пользователя: {}", user);
-            throw new ValidationException("Произошла ошибка при создании пользователя");
-        }
+        userBasicValidation(user);
 
         user.setId(userIdCounter++);
         if(user.getName().isBlank() || user.getName().isEmpty()) {
