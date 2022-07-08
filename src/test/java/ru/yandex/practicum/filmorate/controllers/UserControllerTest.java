@@ -60,26 +60,38 @@ public class UserControllerTest {
     @Test
     public void testValidatorIncorrectEmail() {
         user.setEmail("sdfsdf..asdsdf.rew");
-        assertThrows(ValidationException.class, () -> userController.userBasicValidation(user));
-    }
+        try {
+            userController.userBasicValidation(user);
+        } catch (ValidationException e) {
+            assertEquals("Произошла ошибка при обновлении пользователя (некорректный email)", e.getMessage());
+        }    }
 
     @Test
     public void testValidatorEmptyLogin() {
         user.setLogin("");
-        assertThrows(ValidationException.class, () -> userController.userBasicValidation(user));
-    }
+        try {
+            userController.userBasicValidation(user);
+        } catch (ValidationException e) {
+            assertEquals("Произошла ошибка при обновлении пользователя (пустой логин)", e.getMessage());
+        }    }
 
     @Test
     public void testValidatorIncorrectLogin() {
-        user.setEmail("AB  CD");
-        assertThrows(ValidationException.class, () -> userController.userBasicValidation(user));
-    }
+        user.setLogin("AB  CD");
+        try {
+            userController.userBasicValidation(user);
+        } catch (ValidationException e) {
+            assertEquals("Произошла ошибка при обновлении пользователя (логин содержит пробелы)", e.getMessage());
+        }    }
 
     @Test
     public void testValidatorIncorrectBD() {
         user.setBirthday(LocalDate.of(2132, 2, 12));
-        assertThrows(ValidationException.class, () -> userController.userBasicValidation(user));
-    }
+        try {
+            userController.userBasicValidation(user);
+        } catch (ValidationException e) {
+            assertEquals("Произошла ошибка при обновлении пользователя (день рождения в будущем)", e.getMessage());
+        }    }
 
     // API TESTS
     @Test

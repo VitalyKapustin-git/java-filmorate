@@ -51,7 +51,11 @@ public class FilmControllerTest {
     @Test
     public void testValidatorEmptyName() {
         film1.setName("");
-        assertThrows(ValidationException.class, () -> filmController.filmBasicValidation(film1));
+        try {
+            filmController.filmBasicValidation(film1);
+        } catch (ValidationException e) {
+            assertEquals("Произошла ошибка при обновлении фильма (пустое имя фильма)", e.getMessage());
+        }
     }
 
     @Test
@@ -60,18 +64,27 @@ public class FilmControllerTest {
                 "......................................................................" +
                 "......................................................................" +
                 "......................................................................");
-        assertThrows(ValidationException.class, () -> filmController.filmBasicValidation(film1));
-    }
+        try {
+            filmController.filmBasicValidation(film1);
+        } catch (ValidationException e) {
+            assertEquals("Произошла ошибка при обновлении фильма (описанее более 200 символов)", e.getMessage());
+        }    }
     @Test
     public void testValidatorPastTime() {
         film1.setReleaseDate(LocalDate.of(1700, 2, 13));
-        assertThrows(ValidationException.class, () -> filmController.filmBasicValidation(film1));
-    }
+        try {
+            filmController.filmBasicValidation(film1);
+        } catch (ValidationException e) {
+            assertEquals("Произошла ошибка при обновлении фильма (фильм старее 28.12.1895)", e.getMessage());
+        }    }
     @Test
     public void testValidatorDuration() {
         film1.setDuration(-14324);
-        assertThrows(ValidationException.class, () -> filmController.filmBasicValidation(film1));
-    }
+        try {
+            filmController.filmBasicValidation(film1);
+        } catch (ValidationException e) {
+            assertEquals("Произошла ошибка при обновлении фильма (продолжительность 0 или меньше)", e.getMessage());
+        }    }
 
 
     // API TESTS
