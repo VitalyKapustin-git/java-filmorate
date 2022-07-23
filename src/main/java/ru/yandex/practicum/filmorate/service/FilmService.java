@@ -3,9 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectFilmException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectUserException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.validators.UserExistsValidator;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -16,10 +20,12 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
+    private final UserExistsValidator userExistsValidator;
 
     @Autowired
-    FilmService(FilmStorage filmStorage) {
+    FilmService(FilmStorage filmStorage, UserExistsValidator userExistsValidator) {
         this.filmStorage = filmStorage;
+        this.userExistsValidator = userExistsValidator;
     }
 
     public Film getFilm(int id) {
@@ -42,13 +48,20 @@ public class FilmService {
         if (film1 == null || film == null) throw new IncorrectFilmException(Long.toString(film.getId()));
 
         return filmStorage.updateFilm(film);
-    };
+    }
 
     public void increaseRate(int filmId, int userId) {
+        Set<Integer> rates;
         Film film = filmStorage.getFilm(filmId);
         if (film == null) throw new IncorrectFilmException(Long.toString(filmId));
+        userExistsValidator.checkUser(userId);
 
-        Set<Integer> rates = new HashSet<>(film.getRates());
+        if(film.getRates() == null) {
+            rates = new HashSet<>();
+        } else {
+            rates = new HashSet<>(film.getRates());
+        }
+
         rates.add(userId);
         film.setRates(rates);
 
@@ -57,7 +70,8 @@ public class FilmService {
 
     public void decreaseRate(int filmId, int userId) {
         Film film = filmStorage.getFilm(filmId);
-        if (film == null) throw new IncorrectFilmException(Long.toString(filmId));
+        if(film == null) throw new IncorrectFilmException(Long.toString(filmId));
+        userExistsValidator.checkUser(userId);
 
         Set<Integer> rates = new HashSet<>(film.getRates());
         rates.remove(userId);
@@ -79,7 +93,7 @@ public class FilmService {
         System.out.println(filmStorage.getFilms());
 
         return filmStorage.getFilms().stream()
-                .sorted(Comparator.comparingLong(Film::getRate))
+                .sorted(Comparator.comparingLong(Film::getRate).reversed())
                 .limit(filmsNumber)
                 .collect(Collectors.toSet());
     }

@@ -61,7 +61,7 @@ public class UserService {
         }
 
         if(friend.getFriends() == null) {
-            friend.setFriends(Set.of(friendId));
+            friend.setFriends(Set.of(userId));
         } else if (friend.getFriends().contains(userId)) {
             throw new AlreadyFriendsException(friend.getFriends().toString());
         } else {
@@ -92,6 +92,10 @@ public class UserService {
 
         if(userStorage.getUser(userId) == null) {
             throw new IncorrectUserException(Long.toString(userId));
+        }
+
+        if(userStorage.getUser(userId).getFriends() == null) {
+            return new HashSet<>();
         }
 
         return userStorage.getUser(userId).getFriends().stream()
