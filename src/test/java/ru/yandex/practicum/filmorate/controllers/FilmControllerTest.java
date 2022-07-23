@@ -7,7 +7,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -15,10 +17,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.validators.FilmValidator;
 
 import java.time.LocalDate;
 
-@WebMvcTest(controllers = FilmController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 public class FilmControllerTest {
 
     @Autowired
@@ -26,11 +30,9 @@ public class FilmControllerTest {
     private String film1JsonString;
     private Film film1;
     private Gson gson;
-    private FilmController filmController;
 
     @BeforeEach
     public void beforeEach() {
-        filmController = new FilmController();
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDate.class, new LocalDateAdapter().nullSafe()).create();
@@ -52,7 +54,7 @@ public class FilmControllerTest {
     public void testValidatorEmptyName() {
         film1.setName("");
         try {
-            filmController.filmBasicValidation(film1);
+            FilmValidator.filmBasicValidation(film1);
         } catch (ValidationException e) {
             assertEquals("Произошла ошибка при обновлении фильма (пустое имя фильма)", e.getMessage());
         }
@@ -65,7 +67,7 @@ public class FilmControllerTest {
                 "......................................................................" +
                 "......................................................................");
         try {
-            filmController.filmBasicValidation(film1);
+            FilmValidator.filmBasicValidation(film1);
         } catch (ValidationException e) {
             assertEquals("Произошла ошибка при обновлении фильма (описанее более 200 символов)", e.getMessage());
         }    }
@@ -73,7 +75,7 @@ public class FilmControllerTest {
     public void testValidatorPastTime() {
         film1.setReleaseDate(LocalDate.of(1700, 2, 13));
         try {
-            filmController.filmBasicValidation(film1);
+            FilmValidator.filmBasicValidation(film1);
         } catch (ValidationException e) {
             assertEquals("Произошла ошибка при обновлении фильма (фильм старее 28.12.1895)", e.getMessage());
         }    }
@@ -81,7 +83,7 @@ public class FilmControllerTest {
     public void testValidatorDuration() {
         film1.setDuration(-14324);
         try {
-            filmController.filmBasicValidation(film1);
+            FilmValidator.filmBasicValidation(film1);
         } catch (ValidationException e) {
             assertEquals("Произошла ошибка при обновлении фильма (продолжительность 0 или меньше)", e.getMessage());
         }    }
