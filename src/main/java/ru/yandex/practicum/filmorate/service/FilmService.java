@@ -3,12 +3,9 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectFilmException;
-import ru.yandex.practicum.filmorate.exceptions.IncorrectUserException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.validators.UserExistsValidator;
 
 import java.util.Collection;
@@ -45,7 +42,7 @@ public class FilmService {
 
     public Film updateFilm(Film film) throws ValidationException {
         Film film1 = filmStorage.getFilm(film.getId());
-        if (film1 == null || film == null) throw new IncorrectFilmException(Long.toString(film.getId()));
+        if (film1 == null) throw new IncorrectFilmException(Long.toString(film.getId()));
 
         return filmStorage.updateFilm(film);
     }

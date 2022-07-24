@@ -33,7 +33,7 @@ public class UserService {
 
     public User updateUser(User user) throws ValidationException {
         User user1 = userStorage.getUser(user.getId());
-        if (user1 == null || user == null) throw new IncorrectUserException(Long.toString(user.getId()));
+        if (user1 == null) throw new IncorrectUserException(Long.toString(user.getId()));
 
         return userStorage.updateUser(user);
     }
