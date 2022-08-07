@@ -7,28 +7,30 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.validators.UserValidator;
 
 import java.time.LocalDate;
 
-@WebMvcTest(controllers = UserController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
     private User user;
     private String userToString;
     private Gson gson;
-    private UserController userController;
 
     @BeforeEach
     public void beforeEach() {
-        this.userController = new UserController();
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
@@ -51,7 +53,7 @@ public class UserControllerTest {
         user.setEmail("");
 
         try {
-            userController.userBasicValidation(user);
+            UserValidator.userBasicValidation(user);
         } catch (ValidationException e) {
            assertEquals("Произошла ошибка при обновлении пользователя (пустой email)", e.getMessage());
        }
@@ -61,7 +63,7 @@ public class UserControllerTest {
     public void testValidatorIncorrectEmail() {
         user.setEmail("sdfsdf..asdsdf.rew");
         try {
-            userController.userBasicValidation(user);
+            UserValidator.userBasicValidation(user);
         } catch (ValidationException e) {
             assertEquals("Произошла ошибка при обновлении пользователя (некорректный email)", e.getMessage());
         }    }
@@ -70,7 +72,7 @@ public class UserControllerTest {
     public void testValidatorEmptyLogin() {
         user.setLogin("");
         try {
-            userController.userBasicValidation(user);
+            UserValidator.userBasicValidation(user);
         } catch (ValidationException e) {
             assertEquals("Произошла ошибка при обновлении пользователя (пустой логин)", e.getMessage());
         }    }
@@ -79,7 +81,7 @@ public class UserControllerTest {
     public void testValidatorIncorrectLogin() {
         user.setLogin("AB  CD");
         try {
-            userController.userBasicValidation(user);
+            UserValidator.userBasicValidation(user);
         } catch (ValidationException e) {
             assertEquals("Произошла ошибка при обновлении пользователя (логин содержит пробелы)", e.getMessage());
         }    }
@@ -88,7 +90,7 @@ public class UserControllerTest {
     public void testValidatorIncorrectBD() {
         user.setBirthday(LocalDate.of(2132, 2, 12));
         try {
-            userController.userBasicValidation(user);
+            UserValidator.userBasicValidation(user);
         } catch (ValidationException e) {
             assertEquals("Произошла ошибка при обновлении пользователя (день рождения в будущем)", e.getMessage());
         }    }

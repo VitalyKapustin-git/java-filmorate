@@ -1,90 +1,61 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
-@RequestMapping("/users")
-@Slf4j
 public class UserController {
-    private final Map<Integer, User> userList = new HashMap<>();
-    private int userIdCounter = 1;
+    private UserService userService;
 
-    public void userBasicValidation(User user) throws ValidationException {
-        if (user.getEmail().isBlank() || user.getEmail().isEmpty())
-        {
-            log.warn("Произошла ошибка при обновлении пользователя (пустой email): {}", user);
-            throw new ValidationException("Произошла ошибка при обновлении пользователя (пустой email)");
-        }
-        if (!user.getEmail().contains("@"))
-        {
-            log.warn("Произошла ошибка при обновлении пользователя (некорректный email): {}", user);
-            throw new ValidationException("Произошла ошибка при обновлении пользователя (некорректный email)");
-        }
-        if (user.getLogin().isBlank() || user.getLogin().isEmpty()) {
-            log.warn("Произошла ошибка при обновлении пользователя (пустой логин): {}", user);
-            throw new ValidationException("Произошла ошибка при обновлении пользователя (пустой логин)");
-        }
-        if (user.getLogin().contains(" ")) {
-            log.warn("Произошла ошибка при обновлении пользователя (логин содержит пробелы): {}", user);
-            throw new ValidationException("Произошла ошибка при обновлении пользователя (логин содержит пробелы)");
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Произошла ошибка при обновлении пользователя (день рождения в будущем): {}", user);
-            throw new ValidationException("Произошла ошибка при обновлении пользователя (день рождения в будущем)");
-        }
+    @Autowired
+    UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    @GetMapping
+    @GetMapping("/users/{id}/friends")
+    public Collection<User> getFriends(@PathVariable int id) {
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/users/{id}")
+    public User getUser(@PathVariable int id) {
+        return userService.getUser(id);
+    }
+
+    @GetMapping("/users/{id}/friends/common/{otherId}")
+    public Collection<User> getMutual(@PathVariable int id, @PathVariable int otherId) {
+        return userService.getMutual(id, otherId);
+    }
+
+    @GetMapping("/users")
     public Collection<User> getUsers() {
-        return userList.values();
+        return userService.getAllUsers();
     }
 
-    @PutMapping
+    @PutMapping("/users/{id}/friends/{friendId}")
+    public User addFriend(@PathVariable long id, @PathVariable long friendId) {
+        return userService.addFriend(id, friendId);
+    }
+
+    @DeleteMapping("/users/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable long id, @PathVariable long friendId) {
+        userService.deleteFriend(id, friendId);
+    }
+
+    @PutMapping("/users")
     public User updateUser(@Valid @RequestBody User user) throws ValidationException {
-        userBasicValidation(user);
-
-        if (user.getId() < 1) {
-            log.warn("Произошла ошибка при обновлении пользователя (некорректный id пользователя): {}", user);
-            throw new ValidationException("Произошла ошибка при обновлении пользователя (некорректный id пользователя)");
-        }
-
-        if(user.getName().isBlank() || user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
-
-        if (userList.containsKey(user.getId())) {
-            userList.put(user.getId(), user);
-        } else {
-            user.setId(userIdCounter++);
-            userList.put(user.getId(), user);
-        }
-
-        log.info("Успешно обновлен пользователь -> {}", user);
-
-        return user;
+        return userService.updateUser(user);
     }
 
-    @PostMapping
-    public User addUser(@Valid @RequestBody User user) throws ValidationException {
-        userBasicValidation(user);
-
-        user.setId(userIdCounter++);
-        if(user.getName().isBlank() || user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
-        userList.put(user.getId(), user);
-
-        log.info("Успешно создан пользователь -> {}", user);
-
-        return user;
+    //TODO Убрать возможность создавать одного и того же пользователя
+    @PostMapping("/users")
+    public User createUser(@Valid @RequestBody User user) throws ValidationException {
+        return userService.createUser(user);
     }
 }
