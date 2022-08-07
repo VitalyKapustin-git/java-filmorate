@@ -3,7 +3,7 @@ Template repository for Filmorate project.
 
 ### ERD:
 
-![ERD](https://raw.githubusercontent.com/VitalyKapustin-git/java-filmorate/erd/filmorate-ERD.png)
+![ERD](https://raw.githubusercontent.com/VitalyKapustin-git/java-filmorate/main/filmorate-erd.drawio.png)
 
 UNF:
 * [x] Строки не имеют привязки к нумерации
