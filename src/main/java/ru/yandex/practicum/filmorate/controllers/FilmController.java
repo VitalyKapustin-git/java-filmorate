@@ -53,4 +53,26 @@ public class FilmController {
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
         return filmService.addFilm(film);
     }
+
+    @GetMapping("/mpa")
+    public List<Map<String, Object>> getAllMpa() {
+        return filmService.getAllMpa();
+    }
+
+    @GetMapping("/mpa/{id}")
+    public Map<String, Object> getMpa(@PathVariable int id) {
+        return filmService.getMpa(id);
+    }
+
+    @GetMapping("/genres")
+    public List<Map<String, Object>> getAllGenre() {
+        return filmService.getAllGenres();
+    }
+
+    @GetMapping("/genres/{id}")
+    public Map<String, Object> getGenre(@PathVariable int id) {
+        return filmService.getGenre(id);
+    }
+
+
 }

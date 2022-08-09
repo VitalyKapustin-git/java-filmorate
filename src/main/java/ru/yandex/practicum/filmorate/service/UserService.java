@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.exceptions.AlreadyFriendsException;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectUserException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.dao.UserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;

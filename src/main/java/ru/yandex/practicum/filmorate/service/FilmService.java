@@ -5,13 +5,10 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectFilmException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.dao.FilmStorage;
 import ru.yandex.practicum.filmorate.validators.UserExistsValidator;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -94,4 +91,21 @@ public class FilmService {
                 .limit(filmsNumber)
                 .collect(Collectors.toSet());
     }
+
+    public List<Map<String, Object>> getAllMpa() {
+        return filmStorage.getAllMpa();
+    }
+
+    public Map<String, Object> getMpa(int id) {
+        return filmStorage.getMpa(id);
+    }
+
+    public List<Map<String, Object>> getAllGenres() {
+        return filmStorage.getAllGenres();
+    }
+
+    public Map<String, Object> getGenre(int id) {
+        return filmStorage.getGenre(id);
+    }
+
 }
