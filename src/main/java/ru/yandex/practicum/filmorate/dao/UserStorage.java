@@ -10,4 +10,10 @@ public interface UserStorage {
     Collection<User> getUsers();
     User updateUser(User user) throws ValidationException;
     User addUser(User user) throws ValidationException;
+
+    User addFriend(long userId, long friendId);
+
+    boolean deleteFriend(long userId, long friendId);
+
+    Collection<User> getFriends(long userId);
 }

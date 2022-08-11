@@ -11,7 +11,7 @@ import java.util.Collection;
 
 @RestController
 public class UserController {
-    private UserService userService;
+    private final UserService userService;
 
     @Autowired
     UserController(UserService userService) {

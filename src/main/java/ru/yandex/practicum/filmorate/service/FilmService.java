@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exceptions.IncorrectFilmException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.validators.UserExistsValidator;
 
 import java.util.*;
@@ -23,9 +24,6 @@ public class FilmService {
     }
 
     public Film getFilm(int id) {
-        Film film = filmStorage.getFilm(id);
-        if (film == null) throw new IncorrectFilmException(Integer.toString(id));
-
         return filmStorage.getFilm(id);
     }
 
@@ -84,19 +82,18 @@ public class FilmService {
     public Set<Film> getPopular(String count) {
         int filmsNumber = Integer.parseInt(count);
 
-        System.out.println(filmStorage.getFilms());
-
         return filmStorage.getFilms().stream()
                 .sorted(Comparator.comparingLong(Film::getRate).reversed())
+                .sorted(Comparator.comparing(Film::getReleaseDate).reversed())
                 .limit(filmsNumber)
                 .collect(Collectors.toSet());
     }
 
-    public List<Map<String, Object>> getAllMpa() {
+    public Collection<Mpa> getAllMpa() {
         return filmStorage.getAllMpa();
     }
 
-    public Map<String, Object> getMpa(int id) {
+    public Mpa getMpa(int id) {
         return filmStorage.getMpa(id);
     }
 

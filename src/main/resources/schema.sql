@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS users
 (
     id identity PRIMARY KEY,
-    login varchar,
-    email varchar,
+    login varchar UNIQUE,
+    email varchar UNIQUE,
     name varchar,
     birthday date
 );
@@ -15,19 +15,20 @@ CREATE TABLE IF NOT EXISTS films
     description varchar,
     release_date date,
     duration float,
-    mpa_id int
+    mpa_id int,
+    UNIQUE (name, release_date)
 );
 
 CREATE TABLE IF NOT EXISTS mpa
 (
     id identity PRIMARY KEY,
-    mpa varchar
+    name varchar
 );
 
 CREATE TABLE IF NOT EXISTS genres
 (
     id identity PRIMARY KEY,
-    genre varchar
+    name varchar
 );
 
 CREATE TABLE IF NOT EXISTS friends

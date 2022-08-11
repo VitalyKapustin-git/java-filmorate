@@ -14,14 +14,11 @@ public interface FilmStorage {
     Film addFilm(Film film) throws ValidationException;
     Film updateFilm(Film film) throws ValidationException;
 
-    Map<String, Object> getMpa(int id);
+    Mpa getMpa(int id);
 
-    List<Map<String, Object>> getAllMpa();
+    Collection<Mpa> getAllMpa();
 
     Map<String, Object> getGenre(int id);
 
     List<Map<String, Object>> getAllGenres();
-
-
-
 }
