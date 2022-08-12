@@ -35,7 +35,8 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film getFilm(int id) {
         try {
-            return jdbcTemplate.queryForObject("SELECT * FROM FILMS F WHERE F.ID = ?", (rs, rowNum) -> makeFilm(rs), id);
+            return jdbcTemplate.queryForObject("SELECT * FROM FILMS F WHERE F.ID = ?",
+                    (rs, rowNum) -> makeFilm(rs), id);
         } catch (EmptyResultDataAccessException e) {
             throw new IncorrectFilmException(Integer.toString(id));
         }
@@ -53,7 +54,8 @@ public class FilmDbStorage implements FilmStorage {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement("INSERT INTO FILMS(RATE, NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_ID)" +
+            PreparedStatement stmt = connection.prepareStatement(
+                    "INSERT INTO FILMS(RATE, NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_ID)" +
                     "values ( ?, ?, ?, ?, ?, ? )", new String[]{"id"});
             stmt.setLong(1, film.getRate());
             stmt.setString(2, film.getName());
@@ -77,10 +79,18 @@ public class FilmDbStorage implements FilmStorage {
         return getFilm(Objects.requireNonNull(keyHolder.getKey()).intValue());
     }
 
+    public Collection<Film> getPopular(String count) {
+        int filmsNumber = Integer.parseInt(count);
+
+        return jdbcTemplate.query("SELECT * FROM FILMS ORDER BY RATE LIMIT ?",
+                (rs, rowNumber) -> makeFilm(rs), filmsNumber);
+    }
+
     @Override
     public Film updateFilm(Film film) {
         try {
-            jdbcTemplate.update("UPDATE FILMS set RATE = ?, NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, MPA_ID = ? where ID = ?",
+            jdbcTemplate.update("UPDATE FILMS set RATE = ?, NAME = ?, DESCRIPTION = ?, " +
+                            "RELEASE_DATE = ?, DURATION = ?, MPA_ID = ? where ID = ?",
                 film.getRate(),
                 film.getName(),
                 film.getDescription(),
@@ -91,33 +101,7 @@ public class FilmDbStorage implements FilmStorage {
             );
 
             if (film.getGenres() != null) {
-                if (film.getGenres().isEmpty()) {
-                    int countGenres = jdbcTemplate.queryForObject("SELECT count(*) FROM FILM_GENRE WHERE FILM_ID = ?", Integer.class, film.getId());
-
-                    if (countGenres > 0) {
-                        jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE film_id = ?", film.getId());
-                    }
-                } else {
-                    Collection<Integer> filmGenresDB = new HashSet<>();
-                    Collection<Integer> filmGenresFromFilm = new HashSet<>();
-                    SqlRowSet filmGenresRaw = jdbcTemplate.queryForRowSet("Select genre_id from film_genre where film_id = ?", film.getId());
-
-                    while(filmGenresRaw.next()) {
-                        filmGenresDB.add(filmGenresRaw.getInt("genre_id"));
-                    }
-
-                    film.getGenres().forEach(v -> filmGenresFromFilm.add((Integer) v.get("id")));
-
-                    Collection<Integer> genresNotInDB = filmGenresDB.stream().filter(
-                            filmIdDB -> !filmGenresFromFilm.contains(filmIdDB)
-                    ).collect(Collectors.toList());
-
-                    for (Integer genreId : genresNotInDB) {
-                        jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE film_id = ? AND genre_id = ?", film.getId(), genreId);
-                    }
-
-                    film.getGenres().forEach(v -> jdbcTemplate.update("MERGE INTO FILM_GENRE(film_id, genre_id) VALUES ( ?, ? ) ;", film.getId(), v.get("id")));
-                }
+                updateFilmGenre(film);
             }
 
             return getFilm(film.getId());
@@ -129,7 +113,8 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Mpa getMpa(int id) {
         try {
-            return jdbcTemplate.queryForObject("SELECT m.id, m.NAME FROM MPA m where m.ID = ?", (rs, rowNum) -> makeMpa(rs), id);
+            return jdbcTemplate.queryForObject("SELECT m.id, m.NAME FROM MPA m where m.ID = ?",
+                    (rs, rowNum) -> makeMpa(rs), id);
         } catch (EmptyResultDataAccessException e) {
             throw new IncorrectFilmException(Integer.toString(id));
         }
@@ -137,7 +122,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Collection<Mpa> getAllMpa() {
-        return jdbcTemplate.query("SELECT * FROM MPA", (rs, rowNum) -> makeMpa(rs));
+        return jdbcTemplate.query("SELECT * FROM MPA",
+                (rs, rowNum) -> makeMpa(rs));
     }
 
     @Override
@@ -216,6 +202,45 @@ public class FilmDbStorage implements FilmStorage {
         film.setDuration(duration);
 
         return film;
+    }
+
+    public void updateFilmGenre(Film film) {
+        if (film.getGenres().isEmpty()) {
+            int countGenres = jdbcTemplate.queryForObject("SELECT count(*) FROM FILM_GENRE " +
+                    "WHERE FILM_ID = ?", Integer.class, film.getId());
+
+            if (countGenres > 0) {
+                jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE film_id = ?", film.getId());
+            }
+        } else {
+            /*
+            Берем жанры из переданного фильма и жанры для фильма, которые в БД и сравниваем их.
+            Если в БД есть жанр, а в переданном фильме нет - то удаляем этот жанр из БД.
+             */
+            Collection<Integer> filmGenresDB = new HashSet<>();
+            Collection<Integer> filmGenresFromFilm = new HashSet<>();
+            SqlRowSet filmGenresRaw = jdbcTemplate.queryForRowSet("Select genre_id from film_genre " +
+                    "where film_id = ?", film.getId());
+
+            while (filmGenresRaw.next()) {
+                filmGenresDB.add(filmGenresRaw.getInt("genre_id"));
+            }
+
+            film.getGenres().forEach(v -> filmGenresFromFilm.add((Integer) v.get("id")));
+
+            Collection<Integer> genresNotInDB = filmGenresDB.stream().filter(
+                    filmIdDB -> !filmGenresFromFilm.contains(filmIdDB)
+            ).collect(Collectors.toList());
+
+            for (Integer genreId : genresNotInDB) {
+                jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE film_id = ? AND genre_id = ?",
+                        film.getId(), genreId);
+            }
+
+            // MERGE для H2 вместо INSERT ... ON DUPLICATE KEY UPDATE
+            film.getGenres().forEach(v -> jdbcTemplate.update("MERGE INTO FILM_GENRE(film_id, genre_id) " +
+                    "VALUES ( ?, ? ) ;", film.getId(), v.get("id")));
+        }
     }
 
     private Map<String, Object> mapToLowerCase(Map<String, Object> map) {

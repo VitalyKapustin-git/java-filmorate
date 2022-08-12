@@ -71,7 +71,9 @@ public class UserDbStorage implements UserStorage {
                     "values ( ?, ?, ?, ? )", new String[]{"id"});
             stmt.setString(1, user.getLogin());
             stmt.setString(2, user.getEmail());
-            stmt.setString(3, user.getName().isEmpty() || user.getName().isBlank() || user.getName() == null ? user.getLogin() : user.getName());
+            stmt.setString(3,
+                    user.getName().isEmpty() || user.getName().isBlank() || user.getName() == null ?
+                            user.getLogin() : user.getName());
             stmt.setDate(4, java.sql.Date.valueOf(user.getBirthday()));
 
             return stmt;
@@ -82,7 +84,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getFriends(long userId) {
-        return jdbcTemplate.query("SELECT * from USERS WHERE id IN (select friend_id from friends where usr_id = ?)", (rs, rowNum) -> makeUser(rs), userId);
+        return jdbcTemplate.query("SELECT * from USERS " +
+                "WHERE id IN (select friend_id from friends where usr_id = ?)", (rs, rowNum) -> makeUser(rs), userId);
     }
 
     @Override
@@ -99,7 +102,8 @@ public class UserDbStorage implements UserStorage {
             throw new IncorrectUserException(Long.toString(friendId));
         }
 
-        int numOfEntities = jdbcTemplate.queryForObject("SELECT count(*) FROM friends where usr_id = ? and friend_id = ?", Integer.class, userId, friendId);
+        int numOfEntities = jdbcTemplate.queryForObject("SELECT count(*) FROM friends " +
+                "where usr_id = ? and friend_id = ?", Integer.class, userId, friendId);
 
         if(numOfEntities == 1) {
             throw new AlreadyFriendsException(Long.toString(friendId));
@@ -116,7 +120,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public boolean deleteFriend(long userId, long friendId) throws NotFriendsException {
-        int numOfEntities = jdbcTemplate.queryForObject("SELECT count(*) FROM friends where usr_id = ? and friend_id = ?", Integer.class, userId, friendId);
+        int numOfEntities = jdbcTemplate.queryForObject("SELECT count(*) FROM friends " +
+                "where usr_id = ? and friend_id = ?", Integer.class, userId, friendId);
 
         if(numOfEntities == 0) {
             throw new NotFriendsException("user: " + friendId + " | friend: " + userId);
