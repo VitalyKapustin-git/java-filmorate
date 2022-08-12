@@ -43,33 +43,13 @@ public class FilmService {
     }
 
     public void increaseRate(int filmId, int userId) {
-        Set<Integer> rates;
-        Film film = filmStorage.getFilm(filmId);
-        if (film == null) throw new IncorrectFilmException(Long.toString(filmId));
         userExistsValidator.checkUser(userId);
-
-        if(film.getRates() == null) {
-            rates = new HashSet<>();
-        } else {
-            rates = new HashSet<>(film.getRates());
-        }
-
-        rates.add(userId);
-        film.setRates(rates);
-
-        film.setRate(film.getRate() + 1);
+        filmStorage.increaseRate(filmId, userId);
     }
 
     public void decreaseRate(int filmId, int userId) {
-        Film film = filmStorage.getFilm(filmId);
-        if(film == null) throw new IncorrectFilmException(Long.toString(filmId));
         userExistsValidator.checkUser(userId);
-
-        Set<Integer> rates = new HashSet<>(film.getRates());
-        rates.remove(userId);
-        film.setRates(rates);
-
-        if (film.getRate() > 0) film.setRate(film.getRate() - 1);
+        filmStorage.decreaseRate(filmId, userId);
     }
 
     public long getRate(int filmId) {
@@ -80,9 +60,14 @@ public class FilmService {
     }
 
     public Collection<Film> getPopular(String count) {
-        int filmsNumber = Integer.parseInt(count);
+        String filmsNumber;
+        if (count.length() == 0) {
+            filmsNumber = "1";
+        } else {
+            filmsNumber = count;
+        }
 
-        return filmStorage.getPopular(count);
+        return filmStorage.getPopular(filmsNumber);
     }
 
     public Collection<Mpa> getAllMpa() {

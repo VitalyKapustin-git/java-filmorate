@@ -82,9 +82,22 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Collection<Film> getPopular(String count) {
         int filmsNumber = Integer.parseInt(count);
+        System.out.println(filmsNumber);
 
-        return jdbcTemplate.query("SELECT * FROM FILMS ORDER BY RATE LIMIT ?",
+        return jdbcTemplate.query("SELECT * FROM FILMS ORDER BY RATE, RELEASE_DATE DESC LIMIT ?",
                 (rs, rowNumber) -> makeFilm(rs), filmsNumber);
+    }
+
+    @Override
+    public void increaseRate(int filmId, int userId) {
+        jdbcTemplate.update("MERGE INTO FILM_RATES(usr_id, film_id) VALUES ( ?, ? )", userId, filmId);
+        jdbcTemplate.update("UPDATE FILMS SET RATE = RATE + 1");
+    }
+
+    @Override
+    public void decreaseRate(int filmId, int userId) {
+        jdbcTemplate.update("DELETE FROM FILM_RATES WHERE FILM_ID = ? and USR_ID = ? ", filmId, userId);
+        jdbcTemplate.update("UPDATE FILMS SET RATE = RATE - 1");
     }
 
     @Override

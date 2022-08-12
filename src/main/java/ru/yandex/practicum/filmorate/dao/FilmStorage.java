@@ -15,6 +15,10 @@ public interface FilmStorage {
 
     Collection<Film> getPopular(String count);
 
+    void increaseRate(int filmId, int userId);
+
+    void decreaseRate(int filmId, int userId);
+
     Film updateFilm(Film film) throws ValidationException;
 
     Mpa getMpa(int id);
