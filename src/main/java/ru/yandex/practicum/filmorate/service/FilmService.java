@@ -79,14 +79,10 @@ public class FilmService {
         return getFilm(filmId).getRate();
     }
 
-    public Set<Film> getPopular(String count) {
+    public Collection<Film> getPopular(String count) {
         int filmsNumber = Integer.parseInt(count);
 
-        return filmStorage.getFilms().stream()
-                .sorted(Comparator.comparingLong(Film::getRate).reversed())
-                .sorted(Comparator.comparing(Film::getReleaseDate).reversed())
-                .limit(filmsNumber)
-                .collect(Collectors.toSet());
+        return filmStorage.getPopular(count);
     }
 
     public Collection<Mpa> getAllMpa() {

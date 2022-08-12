@@ -12,6 +12,9 @@ public interface FilmStorage {
     Film getFilm(int id);
     Collection<Film> getFilms();
     Film addFilm(Film film) throws ValidationException;
+
+    Collection<Film> getPopular(String count);
+
     Film updateFilm(Film film) throws ValidationException;
 
     Mpa getMpa(int id);
