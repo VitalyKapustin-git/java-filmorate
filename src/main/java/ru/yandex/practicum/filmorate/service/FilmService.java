@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.validators.UserExistsValidator;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
