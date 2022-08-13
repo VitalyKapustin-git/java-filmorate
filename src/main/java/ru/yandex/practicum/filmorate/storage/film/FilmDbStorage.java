@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.validators.FilmValidator;
 
+import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -82,7 +83,6 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Collection<Film> getPopular(String count) {
         int filmsNumber = Integer.parseInt(count);
-        System.out.println(filmsNumber);
 
         return jdbcTemplate.query("SELECT * FROM FILMS ORDER BY RATE, RELEASE_DATE DESC LIMIT ?",
                 (rs, rowNumber) -> makeFilm(rs), filmsNumber);
@@ -242,16 +242,10 @@ public class FilmDbStorage implements FilmStorage {
 
             film.getGenres().forEach(v -> filmGenresFromFilm.add((Integer) v.get("id")));
 
-            Collection<Integer> genresNotInDB = filmGenresDB.stream().filter(
-                    filmIdDB -> !filmGenresFromFilm.contains(filmIdDB)
-            ).collect(Collectors.toList());
 
-            for (Integer genreId : genresNotInDB) {
-                jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE film_id = ? AND genre_id = ?",
-                        film.getId(), genreId);
-            }
+            jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE film_id = ? AND genre_id not in (?)",
+                        film.getId(), filmGenresFromFilm.toArray());
 
-            // MERGE для H2 вместо INSERT ... ON DUPLICATE KEY UPDATE
             film.getGenres().forEach(v -> jdbcTemplate.update("MERGE INTO FILM_GENRE(film_id, genre_id) " +
                     "VALUES ( ?, ? ) ;", film.getId(), v.get("id")));
         }
