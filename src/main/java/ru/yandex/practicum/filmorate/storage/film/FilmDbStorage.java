@@ -15,13 +15,11 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.validators.FilmValidator;
 
-import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @Primary
@@ -227,24 +225,11 @@ public class FilmDbStorage implements FilmStorage {
                 jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE film_id = ?", film.getId());
             }
         } else {
-            /*
-            Берем жанры из переданного фильма и жанры для фильма, которые в БД и сравниваем их.
-            Если в БД есть жанр, а в переданном фильме нет - то удаляем этот жанр из БД.
-             */
-            Collection<Integer> filmGenresDB = new HashSet<>();
-            Collection<Integer> filmGenresFromFilm = new HashSet<>();
-            SqlRowSet filmGenresRaw = jdbcTemplate.queryForRowSet("Select genre_id from film_genre " +
-                    "where film_id = ?", film.getId());
-
-            while (filmGenresRaw.next()) {
-                filmGenresDB.add(filmGenresRaw.getInt("genre_id"));
-            }
-
-            film.getGenres().forEach(v -> filmGenresFromFilm.add((Integer) v.get("id")));
-
-
-            jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE film_id = ? AND genre_id not in (?)",
-                        film.getId(), filmGenresFromFilm.toArray());
+            jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE film_id = ? AND genre_id NOT IN (?)",
+                    film.getId(),
+                    film.getGenres().stream()
+                            .map(mapObj -> (int) mapObj.get("id")).toArray()
+            );
 
             film.getGenres().forEach(v -> jdbcTemplate.update("MERGE INTO FILM_GENRE(film_id, genre_id) " +
                     "VALUES ( ?, ? ) ;", film.getId(), v.get("id")));
